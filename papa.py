@@ -8,25 +8,29 @@ import speech_recognition as sr #Recognize audio and convert it to text
 
 
 
-def speech_to_text3():
+def speech_to_text3(iterations):
     "Convert only one audio"
+    index=1
     salida=''
     r=sr.Recognizer() #Declaro el objeto reconocedor120
     r.energy_threshold = 4000
     duration_value=180 #Duration es cuánto grabar del audio
     offset_value=0 #Offset es desde dónde arrancar el audio
-    demo=sr.AudioFile('audio4.wav') #Le paso el audio
-    with demo as source:
-        r.adjust_for_ambient_noise(source) #Le ajusto el sonido ambiente
-
-        print('Valor offset ',offset_value)
-        print('Valor duracion',duration_value)
-        audio=r.record(source,offset=179,duration=166) #Lo paso a la variable audio 
-                    
-        output=r.recognize_google(audio,show_all=True, language="es-ES") 
-        salida=salida+' '+(output['alternative'][0]['transcript'])
-        print(salida)
-        print(salida)
+    demo=sr.AudioFile('audioWav.wav') #Le paso el audio
+    while index <= iterations:
+        with demo as source:
+            r.adjust_for_ambient_noise(source) #Le ajusto el sonido ambiente
+            audio=r.record(source,offset=offset_value,duration=180) #Lo paso a la variable audio 
+            output=r.recognize_google(audio,show_all=True, language="es-ES") 
+            print('Salida {}'.format(output))
+            if (output != []):
+                index+=1
+                salida=salida+' '+(output['alternative'][0]['transcript'])
+                offset_value+=179
+                print('Cambia')
+            else:
+                print('Hubo error, probamos de vuelta')
+    return salida
 
         
 def speech_to_text():
@@ -42,7 +46,7 @@ def speech_to_text():
         demo=sr.AudioFile(i) #Le paso el audio
         for i in range(2):
             with demo as source:
-                r.adjust_for_ambient_noise(source) #Le ajusto el sonido ambiente
+                #r.adjust_for_ambient_noise(source) #Le ajusto el sonido ambiente
 
                 print('Valor offset ',offset_value)
                 print('Valor duracion',duration_value)
@@ -57,6 +61,7 @@ def speech_to_text():
 
 
 
+
 def get_extension(string):
     """
         Return the extension of a file
@@ -65,16 +70,16 @@ def get_extension(string):
     fileToConvert=fileToConvert[len(fileToConvert)-1]
     return ((os.path.splitext(fileToConvert)[1])[1:])
 
-def convert_audio_to_mp3(audio,location):
+def convert_audio_to_mp3(audio,location,audio_name):
     """
         Convert the selected audio into mp3 and wav
     """
     extension=get_extension(audio)
     audio = AudioSegment.from_file(audio,format=extension) #Get an audio object
-    location=location+'/'+'archivoNuevo.mp3'
+    location=location+'/'+audio_name+'.mp3'
     audio.export(location,format='mp3') #Export the audio to mp3
     audio.export('audioWav.wav',format='wav') #Export the audio to wav
-
+    return location
     #export function export('location to save the file', format = 'file format')
 
 
@@ -85,32 +90,62 @@ def get_audio_duration(audio):
     file = ((mutagen.File(audio)).info.pprint()).split(' ') #Print metada of a file as a list
     return (file[len(file)-2])
 
-def main():
+def select_audio():
+    """
+        Show a layout to select audio and location to save it
+    """
     layout = [
                 [sg.Text('Elija el archivo a convertir')],
-                [sg.Input(), sg.FileBrowse()],
+                [sg.Input(), sg.FileBrowse('Archivo')],
                 [sg.Text('Elija donde guardar')],
-                [sg.Input(),sg.FolderBrowse()],
+                [sg.Input(),sg.FolderBrowse('Carpeta')],
                 [sg.Submit('Confirmar'),sg.Cancel('Cancelar')]
 
             ]
 
-    window = sg.Window('Ventana',size=(500,500)).layout(layout)
+    window = sg.Window('Ventana',size=(430,200)).layout(layout)
 
     while True:
         event,values = window.Read()
         print('Evento {}'.format(event))
         print('Valores {}'.format(values))
-        if(event == 'Confirmar' and values['Browse'] != '' and values['Browse0'] != ''):
-            print('Entre ',values['Browse'])
-            audio = values['Browse']
-            location = values['Browse0']
-            convert_audio_to_mp3(audio,location)
+        if(event == 'Confirmar' and values['Archivo'] != '' and values['Carpeta'] != ''):
+            audio = values['Archivo']
+            location = values['Carpeta']
             window.Close()
-            break
+            return (audio,location)
         elif(event == None):
             break
 
+def select_name_audio():
+    """
+        Show a layout to put the name of the new audio
+    """
+    layout = [
+                [sg.Text('Ingrese el nombre del nuevo audio .mp3'),sg.Input(size=(15,20))],
+                [sg.Submit('Enviar')]            
+             ]
+    window = sg.Window('Ventana',layout)
+    while True:
+        event,values = window.Read()
+        print('Evento ',event)
+        print('Valores ',values)
+        if values[0] != '':
+            window.Close()
+            return values[0]
+        if event == None:
+            window.Close()
+            break
 
-main()
+def main():
+    audio,location = select_audio()
+    audio_name= select_name_audio()
+    location = convert_audio_to_mp3(audio,location,audio_name)
+    audio_duration = get_audio_duration(location) #This audio_duration is in seconds
+    iterations = (float(audio_duration) // 180) + 1
+    iterations = (float(audio_duration) // 180) + 1
+    salida = speech_to_text3(int(iterations))
+    print(salida)   
+    window.Close()
 
+speech_to_text3(2)
