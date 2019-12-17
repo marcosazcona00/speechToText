@@ -32,36 +32,7 @@ def speech_to_text3(iterations):
                 print('Hubo error, probamos de vuelta')
     return salida
 
-        
-def speech_to_text():
-    """
-        Este es el módulo que anda bien
-    """
-    audios=['audio1.wav','audio2.wav','audio3.wav']
-    r=sr.Recognizer() #Declaro el objeto reconocedor120
-    r.energy_threshold = 4000
-    for i in audios:
-        duration_value=180 #Duration es cuánto grabar del audio
-        offset_value=0 #Offset es desde dónde arrancar el audio
-        demo=sr.AudioFile(i) #Le paso el audio
-        for i in range(2):
-            with demo as source:
-                #r.adjust_for_ambient_noise(source) #Le ajusto el sonido ambiente
-
-                print('Valor offset ',offset_value)
-                print('Valor duracion',duration_value)
-                audio=r.record(source,offset=offset_value,duration=duration_value) #Lo paso a la variable audio 
-                    
-                output=r.recognize_google(audio,show_all=True, language="es-ES") 
-                print(output)
-                guardar_salida((output['alternative'][0]['transcript']))
-                    
-                duration_value=120
-                offset_value=179
-
-
-
-
+    
 def get_extension(string):
     """
         Return the extension of a file
@@ -146,6 +117,5 @@ def main():
     iterations = (float(audio_duration) // 180) + 1
     salida = speech_to_text3(int(iterations))
     print(salida)   
-    window.Close()
 
-speech_to_text3(2)
+main()
