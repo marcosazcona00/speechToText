@@ -12,7 +12,7 @@ def speech_to_text(iterations):
     "Convert only one audio"
     index=1
     salida=''
-    r=sr.Recognizer() #Declaro el objeto reconocedor120
+    r = sr.Recognizer() #Declaro el objeto reconocedor120
     r.energy_threshold = 4000
     duration_value=180 #Duration es cuánto grabar del audio
     offset_value=0 #Offset es desde dónde arrancar el audio
@@ -23,7 +23,7 @@ def speech_to_text(iterations):
             audio=r.record(source,offset=offset_value,duration=180) #Lo paso a la variable audio 
             output=r.recognize_google(audio,show_all=True, language="es-ES") 
             print('Salida {}'.format(output))
-            if (output != []):
+            if (output != []): #Si pudo hacer la conversión
                 index+=1
                 salida=salida+' '+(output['alternative'][0]['transcript'])
                 offset_value+=179
@@ -78,8 +78,6 @@ def select_audio():
 
     while True:
         event,values = window.Read()
-        print('Evento {}'.format(event))
-        print('Valores {}'.format(values))
         if(event == 'Confirmar' and values['Archivo'] != '' and values['Carpeta'] != ''):
             audio = values['Archivo']
             location = values['Carpeta']
@@ -115,7 +113,7 @@ def main():
     location = convert_audio_to_mp3(audio,location,audio_name) 
     audio_duration = get_audio_duration(location) #This audio_duration is in seconds
     iterations = (float(audio_duration) // 180) + 1 
-    salida = speech_to_tex(int(iterations))
+    salida = speech_to_text(int(iterations))
     print(salida)   
 
 main()
